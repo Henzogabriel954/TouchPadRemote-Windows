@@ -1,0 +1,58 @@
+name: Build & Release Windows Portable EXE
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '22'
+
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Run tests, build JAR & package portable Windows EXE
+        run: gradle :shared-protocol:test :windows-app:test :windows-app:jar :windows-app:packagePortableWindows --no-daemon
+
+      - name: Prepare release assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          Copy-Item "dist/TouchPadRemote-Windows-Portatil.zip" "release-assets/TouchPadRemote-Windows-Portatil.zip"
+          Copy-Item "windows-app/build/libs/windows-app.jar" "release-assets/TouchPadRemote-Servidor.jar"
+
+      - name: Publish Release v1.0.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: TouchPad Remote Windows v1.0.0
+          body: |
+            ## TouchPad Remote — Servidor Windows (v1.0.0)
+
+            Receba movimentos, cliques, arrasto e rolagem do celular Android via rede local (UDP porta `45454`), com suporte nativo a jogos 3D (Minecraft) via `user32.dll`.
+
+            ### Downloads
+            - **`TouchPadRemote-Windows-Portatil.zip`** *(Recomendado)*: Versão portátil com `TouchPadRemote.exe` e runtime Java embutido — **não precisa instalar Java**, basta extrair e executar! Inclui também `Liberar-Firewall-Windows.bat`.
+            - **`TouchPadRemote-Servidor.jar`**: Executável leve para computadores que já têm Java 17+.
+
+            ### Aplicativo Android (Celular)
+            Baixe o APK do celular em: https://github.com/Henzogabriel954/TouchPadRemote-Android/releases/latest
+          files: |
+            release-assets/TouchPadRemote-Windows-Portatil.zip
+            release-assets/TouchPadRemote-Servidor.jar
