@@ -1,0 +1,16 @@
+[package]
+name = "touchpad-input-linux"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+touchpad-protocol = { path = "../touchpad-protocol" }
+touchpad-server-core = { path = "../touchpad-server-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+evdev = { workspace = true }
+x11rb = { workspace = true }

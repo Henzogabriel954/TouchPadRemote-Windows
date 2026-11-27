@@ -1,0 +1,13 @@
+[package]
+name = "touchpad-input-win"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+touchpad-protocol = { path = "../touchpad-protocol" }
+touchpad-server-core = { path = "../touchpad-server-core" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }

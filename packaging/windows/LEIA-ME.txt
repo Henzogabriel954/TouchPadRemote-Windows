@@ -1,0 +1,24 @@
+TouchPad Remote — versão portátil para Windows
+Versão nativa em Rust (não precisa de Java!).
+
+1. Extraia todo o ZIP para uma pasta de sua escolha. Conecte o computador e o
+   celular à mesma rede para usar a descoberta automática.
+2. Modo portátil: abra TouchPadRemote.exe e selecione o computador no celular.
+3. Se o Firewall do Windows pedir autorização, clique em "Permitir acesso".
+   Se o computador aparecer offline, execute Liberar-Firewall-Windows.bat
+   e aceite a solicitação de Administrador para liberar a porta UDP 45454.
+
+Modo Serviço UAC
+Use Instalar-Servico-UAC.bat ou o botão de instalação no aplicativo e confirme
+a solicitação de Administrador. O serviço LocalSystem permite controlar o
+Gerenciador de Tarefas e as janelas "Sim/Não" do UAC na Área de Trabalho Segura.
+Nesta revisão, o executável do serviço ainda é um placeholder. Use o modo
+portátil até a implementação do serviço estar disponível.
+Mantenha os arquivos na pasta de instalação enquanto estiver usando o serviço.
+Para removê-lo, execute Desinstalar-Servico-UAC.bat como Administrador.
+
+Configurações e Multi-PC
+As configurações e os celulares salvos persistem entre execuções no perfil
+do Windows, em %APPDATA%\TouchPadRemote\config.json.
+No aplicativo do celular, configure a borda de troca para cada computador.
+Deslize até a borda configurada para alternar entre os PCs cadastrados.

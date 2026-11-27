@@ -1,58 +1,62 @@
-name: Build & Release Windows Portable EXE
+﻿name: Build & Release Windows
 
 on:
   push:
     branches: [ "main" ]
     tags: [ "v*" ]
+  pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-release:
+  build:
     runs-on: windows-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 22
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '22'
-
-      - name: Set up Gradle 8.13
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
-
-      - name: Run tests, build JAR & package portable Windows EXE
-        run: gradle :shared-protocol:test :windows-app:test :windows-app:jar :windows-app:packagePortableWindows --no-daemon
-
-      - name: Prepare release assets
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run tests & build Rust Windows binaries
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
-          Copy-Item "dist/TouchPadRemote-Windows-Portatil.zip" "release-assets/TouchPadRemote-Windows-Portatil.zip"
-          Copy-Item "windows-app/build/libs/windows-app.jar" "release-assets/TouchPadRemote-Servidor.jar"
+          cargo test --locked --workspace
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo build --locked --release -p touchpad-desktop-gui -p touchpad-win-service
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Package portable Windows bundle
+        shell: pwsh
+        run: ./packaging/windows/package-windows.ps1 -SkipBuild
+      - uses: actions/upload-artifact@v4
+        with:
+          name: touchpad-windows
+          path: dist/TouchPadRemote-Windows-Portatil.zip
+          if-no-files-found: error
 
-      - name: Publish Release v1.0.0
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: touchpad-windows
+          path: dist
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: TouchPad Remote Windows v1.0.0
+          name: "TouchPad Remote Windows ${{ github.ref_name }}"
           body: |
-            ## TouchPad Remote — Servidor Windows (v1.0.0)
+            ## TouchPad Remote — Servidor Windows (${{ github.ref_name }})
 
-            Receba movimentos, cliques, arrasto e rolagem do celular Android via rede local (UDP porta `45454`), com suporte nativo a jogos 3D (Minecraft) via `user32.dll`.
+            Servidor desktop nativo em **Rust** (sem necessidade de Java), com suporte a **jogos 3D**, **persistência de configurações e dispositivos permitidos**, controle de **Gerenciador de Tarefas e janelas UAC ("Sim/Não")** via Serviço Windows opcional, e troca automática **Multi-PC pela borda da tela** orquestrada pelo celular.
 
             ### Downloads
-            - **`TouchPadRemote-Windows-Portatil.zip`** *(Recomendado)*: Versão portátil com `TouchPadRemote.exe` e runtime Java embutido — **não precisa instalar Java**, basta extrair e executar! Inclui também `Liberar-Firewall-Windows.bat`.
-            - **`TouchPadRemote-Servidor.jar`**: Executável leve para computadores que já têm Java 17+.
+            - **`TouchPadRemote-Windows-Portatil.zip`**: versão portátil completa com `TouchPadRemote.exe`, `touchpad-win-service.exe`, `Instalar-Servico-UAC.bat`, `Desinstalar-Servico-UAC.bat` e `Liberar-Firewall-Windows.bat`.
 
-            ### Aplicativo Android (Celular)
-            Baixe o APK do celular em: https://github.com/Henzogabriel954/TouchPadRemote-Android/releases/latest
-          files: |
-            release-assets/TouchPadRemote-Windows-Portatil.zip
-            release-assets/TouchPadRemote-Servidor.jar
+            ### Outras Plataformas
+            - **Android**: https://github.com/Henzogabriel954/TouchPadRemote-Android/releases/latest
+            - **Linux**: https://github.com/Henzogabriel954/TouchPadRemote-Linux/releases/latest
+          files: dist/TouchPadRemote-Windows-Portatil.zip
+          fail_on_unmatched_files: true

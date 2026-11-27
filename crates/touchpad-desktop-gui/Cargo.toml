@@ -1,0 +1,33 @@
+[package]
+name = "touchpad-desktop-gui"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "TouchPadRemote"
+path = "src/main.rs"
+
+[[bin]]
+name = "touchpad-daemon"
+path = "src/bin/touchpad_daemon.rs"
+
+[dependencies]
+touchpad-protocol = { path = "../touchpad-protocol" }
+touchpad-storage = { path = "../touchpad-storage" }
+touchpad-server-core = { path = "../touchpad-server-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+eframe = { workspace = true }
+egui = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+touchpad-input-win = { path = "../touchpad-input-win" }
+touchpad-win-service = { path = "../touchpad-win-service" }
+windows-sys = { workspace = true }
+tray-icon = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+touchpad-input-linux = { path = "../touchpad-input-linux" }

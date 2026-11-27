@@ -1,0 +1,12 @@
+[package]
+name = "touchpad-server-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+touchpad-protocol = { path = "../touchpad-protocol" }
+touchpad-storage = { path = "../touchpad-storage" }
+if-addrs = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }

@@ -1,0 +1,27 @@
+[package]
+name = "touchpad-win-service"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "touchpad_win_service"
+path = "src/lib.rs"
+
+[[bin]]
+name = "touchpad-win-service"
+path = "src/main.rs"
+
+[dependencies]
+touchpad-protocol = { path = "../touchpad-protocol" }
+touchpad-storage = { path = "../touchpad-storage" }
+touchpad-server-core = { path = "../touchpad-server-core" }
+touchpad-input-win = { path = "../touchpad-input-win" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+windows-service = { workspace = true }
